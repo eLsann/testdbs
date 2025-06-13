@@ -1,7 +1,6 @@
 import tensorflow as tf
 import numpy as np
 import os
-from pathlib import Path
 import logging
 
 logger = logging.getLogger(__name__)
@@ -9,20 +8,16 @@ logger = logging.getLogger(__name__)
 class ModelLoader:
     def __init__(self):
         self.model = None
-        self.model_path = None
-        self.class_names = ['Cataract', 'Normal'] 
+        self.model_path = "app/model/model_vgg16.keras"
+        self.class_names = ['Cataract', 'Normal']
         
-    def load_model(self, model_path: str = None):
-        """Load the VGG16 .keras model"""
+    def load_model(self):
+        """Download (if needed) and load the VGG16 .keras model"""
         try:
-           
             self._download_model_if_needed()
 
-            final_model_path = self._get_model_path(model_path)
-            self.model = tf.keras.models.load_model(final_model_path)
-            self.model_path = final_model_path
-
-            logger.info(f"VGG16 model loaded successfully from {final_model_path}")
+            self.model = tf.keras.models.load_model(self.model_path)
+            logger.info(f" VGG16 model loaded from {self.model_path}")
             logger.info(f"Model input shape: {self.model.input_shape}")
             logger.info(f"Model output shape: {self.model.output_shape}")
 
@@ -30,54 +25,27 @@ class ModelLoader:
             self._test_model()
 
         except Exception as e:
-            logger.error(f"Error loading VGG16 model: {str(e)}")
+            logger.error(f" Error loading VGG16 model: {str(e)}")
             raise e
 
     def _download_model_if_needed(self):
-        model_path = "app/model/model_vgg16.keras"
-        if not os.path.exists(model_path):
+        """Download model from Google Drive if not already present"""
+        if not os.path.exists(self.model_path):
             try:
                 import gdown
                 url = "https://drive.google.com/uc?id=1VweyVdVK4CULSNLQKQ-aK8b541In4eAj&export=download"
-                os.makedirs(os.path.dirname(model_path), exist_ok=True)
-                logger.info("Downloading model_vgg16.keras from Google Drive...")
-                gdown.download(url, model_path, quiet=False)
+                os.makedirs(os.path.dirname(self.model_path), exist_ok=True)
+                logger.info(" Downloading model_vgg16.keras from Google Drive...")
+                gdown.download(url, self.model_path, quiet=False)
+                if os.path.exists(self.model_path):
+                    logger.info(" Model successfully downloaded.")
+                else:
+                    logger.error(" Model download failed.")
             except Exception as e:
-                logger.error(f"Failed to download model: {e}")
+                logger.error(f" Failed to download model: {e}")
                 raise e
-
-    def _get_model_path(self, model_path: str = None) -> str:
-        if model_path is not None:
-            return model_path
-
-        current_dir = Path.cwd()
-        script_dir = Path(__file__).parent
-        project_root = script_dir.parent.parent
-
-        possible_paths = [
-            current_dir / "model_vgg16.keras",
-            current_dir / "model" / "model_vgg16.keras",
-            current_dir / "models" / "model_vgg16.keras",
-            script_dir / "model_vgg16.keras",
-            script_dir / "model" / "model_vgg16.keras",
-            project_root / "model_vgg16.keras",
-            project_root / "model" / "model_vgg16.keras",
-            project_root / "models" / "model_vgg16.keras",
-            project_root / "Machine_Learning_API" / "model_vgg16.keras",
-            project_root / "Machine_Learning_API" / "models" / "model_vgg16.keras",
-            Path("./model_vgg16.keras"),
-            Path("../model_vgg16.keras"),
-            Path("../../model_vgg16.keras"),
-            Path("../../../model_vgg16.keras"),
-        ]
-
-        for path in possible_paths:
-            abs_path = path.resolve()
-            if abs_path.exists():
-                logger.info(f"Found VGG16 model at: {abs_path}")
-                return str(abs_path)
-
-        raise FileNotFoundError("model_vgg16.keras file not found. Searched in 14 locations.")
+        else:
+            logger.info(" Model already exists locally.")
 
     def _test_model(self):
         try:
@@ -88,18 +56,18 @@ class ModelLoader:
             logger.info(f"VGG16 test prediction shape: {prediction.shape}")
             logger.info(f"Sample prediction: {prediction}")
         except Exception as e:
-            logger.warning(f"VGG16 model test failed: {e}")
+            logger.warning(f" VGG16 model test failed: {e}")
 
     def predict(self, processed_image: np.ndarray):
         if self.model is None:
-            raise ValueError("Model not loaded. Call load_model() first.")
+            raise ValueError(" Model not loaded. Call load_model() first.")
 
         try:
             if len(processed_image.shape) == 3:
                 processed_image = np.expand_dims(processed_image, axis=0)
 
             predictions = self.model.predict(processed_image, verbose=1)
-            logger.info(f"Predictions: {predictions}")
+            logger.info(f" Raw prediction: {predictions}")
 
             if predictions.shape[-1] == 1:
                 raw_confidence = float(predictions[0][0])
@@ -147,7 +115,7 @@ class ModelLoader:
             }
 
         except Exception as e:
-            logger.error(f"Error getting model info: {str(e)}")
+            logger.error(f" Error getting model info: {str(e)}")
             return {'error': str(e)}
 
 # Global instance
