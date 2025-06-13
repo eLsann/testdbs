@@ -1,10 +1,12 @@
+import os
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+
 from app.utils import numpy_compat
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
 from app.routes.predict import router as predict_router
-import os
 
 app = FastAPI(
     title="CataractSense ML API",
