@@ -5,7 +5,7 @@ tensorflow
 tensorflowjs
 Pillow
 numpy
-opencv-python
+opencv-python-headless
 pydantic
 python-jose[cryptography]
 passlib[bcrypt]
