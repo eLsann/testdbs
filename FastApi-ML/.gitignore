@@ -1,0 +1,6 @@
+# ...existing code...
+app/model/
+tfjs_model_cnn/
+*.keras
+*.h5
+*.bin

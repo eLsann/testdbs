@@ -1,0 +1,13 @@
+fastapi
+uvicorn[standard]
+python-multipart
+tensorflow
+tensorflowjs
+Pillow
+numpy
+opencv-python
+pydantic
+python-jose[cryptography]
+passlib[bcrypt]
+aiofiles
+gdown
